@@ -521,6 +521,8 @@ Datei xl/comments1.xml
   # Extracts all needed files from the zip file
   def process_zipfile(tmpdir, zipfilename, zip, path='')
     @sheet_files = []
+    fix = 0
+
     Roo::ZipFile.open(zipfilename) {|zf|
       zf.entries.each {|entry|
         if entry.to_s.end_with?('workbook.xml')
@@ -543,8 +545,15 @@ Datei xl/comments1.xml
             f << zip.read(entry)
           }
         end
+        if entry.to_s.downcase.end_with?('sheet.xml')
+          fix = 1
+          open(tmpdir+'/'+'roo_sheet1', 'wb') do |f|
+            f << zip.read(entry)
+          end
+          @sheet_files[0] = tmpdir+'/'+'roo_sheet1'
+        end
         if entry.to_s.downcase =~ /sheet([0-9]+).xml$/
-          nr = $1
+          nr = ($1.to_i + fix).to_s
           open(tmpdir+'/'+"roo_sheet#{nr}",'wb') {|f|
             f << zip.read(entry)
           }
